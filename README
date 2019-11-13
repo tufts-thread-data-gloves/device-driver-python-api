@@ -1,0 +1,7 @@
+# Thread Data Gloves Device Driver Wrapper for Python
+The library ThreadDeviceDriverWrapper is a python library that functions as an API for using the thread
+data gloves.
+
+# To Consider/Add
+1. Threading the listener call
+2. Adding other endpoint calls
