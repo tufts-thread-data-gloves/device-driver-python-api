@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 import socket
 from struct import *
 import uuid
@@ -84,6 +84,9 @@ class ThreadDeviceDriverWrapper:
     # used to store the calibration information. Raises CouldNotConnectException on Socket error.
     def start_calibration(self, delay_time, file_path):
         self.__build_and_send_endpoint_request(DriverRequestCode.CALIBRATION_REQUEST.value, "")
+        # make sure it went through
+        self.__receive_endpoint_request()
+
         # start background thread to handle the waiting and file save
         calibration_background_task = threading.Thread(target=self.__wait_and_save_calibration,
                                                        args=(delay_time, file_path))
@@ -97,11 +100,22 @@ class ThreadDeviceDriverWrapper:
             payload = self.__receive_endpoint_request()
         except CouldNotConnectException:
             raise BadFileException
+        print("SUCCESS returned on set calibration with file")
 
     # is_glove_connected() returns True if glove is connected to the driver, False otherwise.
     # Raises CouldNotConnectException on socket failure.
     def is_glove_connected(self):
         self.__build_and_send_endpoint_request(DriverRequestCode.IS_GLOVE_CONNECTED_REQUEST.value, "")
+        payload = self.__receive_endpoint_request()
+        if "yes" in payload:
+            return True
+        else:
+            return False
+
+    # is_calibrated() returns True if glove is calibrated, False otherwise. Raises CouldNotConnectException on
+    # socket failure.
+    def is_calibrated(self):
+        self.__build_and_send_endpoint_request(DriverRequestCode.ASK_IF_CALIBRATED_REQUEST.value, "")
         payload = self.__receive_endpoint_request()
         if "yes" in payload:
             return True
@@ -154,15 +168,16 @@ class ThreadDeviceDriverWrapper:
             raise CouldNotConnectException
 
         format_string = 'c'
-        message = ""
         if payload == "":
-            # no payload
             format_string += 'c'
-            message = pack(format_string, request_code, b'\n')
+            message = pack(format_string, bytes(chr(request_code), encoding='utf-8'), b'\n')
         else:
-            format_string += str(len(payload)) + 'c'
-            message = pack(format_string, request_code, payload, b'\n')
+            format_string += str(len(payload)) + 's' + 'c'
+            message = pack(format_string, bytes(chr(request_code), encoding='utf-8'), bytes(payload, encoding='utf-8'),
+                           b'\n')
+
         # send message
+        print(message)
         try:
             if not self.socket.send(message) == len(message):
                 raise IOError
@@ -198,6 +213,7 @@ class ThreadDeviceDriverWrapper:
     # not raise any exception.
     def __wait_and_save_calibration(self, delay_time, file_path):
         time.sleep(delay_time)
+        print("Done waiting, now going to retrieve info and try and save it")
         # create file to save with and then close it
         with open(file_path, 'w+') as newfile:
             pass
@@ -210,9 +226,27 @@ class ThreadDeviceDriverWrapper:
             return
 
         # read result from end calibration request
-        payload = ""
+        payload = " "
         try:
-            payload = self.__receive_endpoint_request()
+            # since response includes multiple new lines - we dont use receive_endpoint_request helper function
+            if not self.socket_connected:
+                raise CouldNotConnectException
+
+            try:
+                newlines_read = 0
+                data = b''
+                while not newlines_read >= 2:
+                    data += self.socket.recv(BUFFER_SIZE)
+                    newlines_read = data.count(b'\n')
+            except socket.error:
+                print("Error receiving data from socket")
+                raise CouldNotConnectException
+
+            # make sure success was returned, and then return the payload
+            if data[0] == 1:
+                raise CouldNotConnectException
+            print("Data received from end calibration", data)
+            payload = (data[1:]).decode('utf-8')
         except CouldNotConnectException:
             return
 
@@ -229,7 +263,7 @@ class GestureCode(Enum):
     PAN = 4
 
 
-class DriverRequestCode(Enum):
+class DriverRequestCode(IntEnum):
     BATTERY_LIFE_REQUEST = 3
     CALIBRATION_REQUEST = 4
     END_CALIBRATION_REQUEST = 5
