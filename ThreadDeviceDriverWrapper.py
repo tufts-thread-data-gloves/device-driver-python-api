@@ -147,6 +147,26 @@ class ThreadDeviceDriverWrapper:
                 except ValueError:
                     print("Not a valid gesture code")
 
+    # TODO: see todos below
+    def start_gesture_recording(self):
+        self.__build_and_send_endpoint_request(DriverRequestCode.START_RECORDING.value, "")
+        try:
+            payload = self.__receive_endpoint_request()
+        except CouldNotConnectException:
+            return False
+        print("SUCCESS STARTING")
+        return True
+
+    # TODO: see todos below
+    def end_gesture_recording(self, file_path):
+        self.__build_and_send_endpoint_request(DriverRequestCode.END_RECORDING.value, file_path)
+        try:
+            payload = self.__receive_endpoint_request()
+        except CouldNotConnectException:
+            return False
+        print("SUCCESS ENDING")
+        return True
+
     def __del__(self):
         self.socket.close()
 
@@ -177,7 +197,7 @@ class ThreadDeviceDriverWrapper:
                            b'\n')
 
         # send message
-        print(message)
+        print("Message is", message)
         try:
             if not self.socket.send(message) == len(message):
                 raise IOError
@@ -270,6 +290,8 @@ class DriverRequestCode(IntEnum):
     USE_SAVED_CALIBRATION_DATA_REQUEST = 6
     ASK_IF_CALIBRATED_REQUEST = 7
     IS_GLOVE_CONNECTED_REQUEST = 8
+    START_RECORDING = 9 #TODO: this is a temporary endpoint for recording gestures for the purpose of gesture recognition
+    END_RECORDING = 11 #TODO: ^
 
 
 class ConnectCode(Enum):
