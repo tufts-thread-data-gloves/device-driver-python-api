@@ -90,6 +90,7 @@ class ThreadDeviceDriverWrapper:
         # start background thread to handle the waiting and file save
         calibration_background_task = threading.Thread(target=self.__wait_and_save_calibration,
                                                        args=(delay_time, file_path))
+        calibration_background_task.daemon = True
         calibration_background_task.start()
 
     # set_calibration_with_file(file_path) calibrates the device driver with the results in the file. Raises
