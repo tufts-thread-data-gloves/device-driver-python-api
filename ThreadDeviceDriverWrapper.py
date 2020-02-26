@@ -17,6 +17,7 @@ class ThreadDeviceDriverWrapper:
         # constructor
         self.listening_pipe = ""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.settimeout(5) # sets timeout of 5 seconds
         self.id = uuid.uuid1()
         self.socket_connected = False
         print("Initialized pt 0.1")
@@ -117,7 +118,10 @@ class ThreadDeviceDriverWrapper:
     # socket failure.
     def is_calibrated(self):
         self.__build_and_send_endpoint_request(DriverRequestCode.ASK_IF_CALIBRATED_REQUEST.value, "")
-        payload = self.__receive_endpoint_request()
+        try:
+            payload = self.__receive_endpoint_request()
+        except CouldNotConnectException:
+            return False
         if "yes" in payload:
             return True
         else:
@@ -220,7 +224,7 @@ class ThreadDeviceDriverWrapper:
                 index = data.find(b'\n')
                 if not index == -1:
                     newline_read = True
-        except socket.error:
+        except socket.error or Exception:
             print("Error receiving data from socket")
             raise CouldNotConnectException
 
@@ -268,7 +272,7 @@ class ThreadDeviceDriverWrapper:
                 raise CouldNotConnectException
             print("Data received from end calibration", data)
             payload = (data[1:]).decode('utf-8')
-        except CouldNotConnectException:
+        except CouldNotConnectException or Exception:
             return
 
         # save into file
