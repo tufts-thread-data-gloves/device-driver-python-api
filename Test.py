@@ -1,5 +1,6 @@
 from ThreadDeviceDriverWrapper import ThreadDeviceDriverWrapper
 from time import sleep
+import keyboard
 import threading
 
 def my_listener_callback(gesture_id, x, y, z):
@@ -53,8 +54,8 @@ print("Calibrated?", wrapper.is_calibrated())
 # 3. Create file for the recordings to go in
 # 4. Start thread that listens for gestures
 # 5. Listen to user input, on space bar start recording, on next space bar, end recording
-calibrationFile = "C:\\Users\\Aaron\\source\\repos\\python-api-device-driver\\testCalibrationFiles\\recordingsCal2.txt"
-filename = "C:\\Users\\Aaron\\source\\repos\\python-api-device-driver\\gestureRecordings\\recordings2.txt"
+calibrationFile = "C:\\Users\\Aaron\\source\\repos\\python-api-device-driver\\testCalibrationFiles\\recordingsCalReal.txt"
+filename = "C:\\Users\\Aaron\\source\\repos\\python-api-device-driver\\gestureRecordings\\recordingsPan.txt"
 
 is_calibrated = False
 if not is_calibrated:
@@ -83,20 +84,16 @@ with open(filename, "w+") as newfile:
 #x.start()
 
 print("About to loop for recording")
+print("Press space to start, then space to end")
+print("This program will tell you when it has been recognized as started and when it has been recognized as ending")
 
 # step 5
 while True:
-    key1 = input("Press space and then enter to start recording ->")
-    if key1 == " ":
-        wrapper.start_gesture_recording()
-    else:
-        continue
+    keyboard.wait('space')
+    wrapper.start_gesture_recording()
+    print("Gesture recording started")
+    keyboard.wait('space')
+    wrapper.end_gesture_recording(filename)
+    print("Gesture recordin  g ended")
 
-    key1 = input("Press space and then enter to end recording ->")
-    if key1 == " ":
-        wrapper.end_gesture_recording(filename)
-    else:
-        wrapper.end_gesture_recording(filename)
-        print("didn't end with space bar")
-        exit(1)
 
