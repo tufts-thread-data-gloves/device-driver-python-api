@@ -148,7 +148,16 @@ class ThreadDeviceDriverWrapper:
                 try:
                     gesture_code = GestureCode(int(gesture_values[0]))
                     vector = gesture_values[1].split(',')
-                    callback(gesture_code, vector[0], vector[1], vector[2])
+                    values = [0, 0, 0]
+                    for i in range(3):
+                        elt = vector[i]
+                        elt.split(':')
+                        if elt[0] == 1:
+                            values[i] = -1 * int(elt[1])
+                        else:
+                            values[i] = int(elt[1])
+
+                    callback(gesture_code, values[0], values[1], values[2])
                 except ValueError:
                     print("Not a valid gesture code")
 
