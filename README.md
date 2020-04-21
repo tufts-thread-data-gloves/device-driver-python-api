@@ -34,3 +34,19 @@ wrapper.start_calibration(delay_time, file_path) # starts the calibration proces
 wrapper.set_calibration_with_file(file_path) # sets the calibration with a saved file given by the string file_path
 wrapper.is_glove_connected() # returns true if glove is connected to driver over bluetooth
 ```
+
+# Using the gesture listener
+The gesture listener endpoint can be called by passing in a callback with 4 parameters: the gesture id, x, y and z values.
+This callback should look like:
+```python
+def example_callback(gesture_id, x, y, z)
+```
+
+The gesture listener acts as an infinite loop, so it should be run in the background by the user if the user intends
+to use the other API endpoints too. The gesture listener function calls the callback every time a gesture is made. 
+
+A gesture id can be one of the following:
+1: Zoom In
+2: Zoom Out
+3: Rotate
+4: Pan
