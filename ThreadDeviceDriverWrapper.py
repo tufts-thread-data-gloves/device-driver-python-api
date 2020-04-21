@@ -3,7 +3,7 @@ import socket
 from struct import *
 import uuid
 from Constants import *
-import win32pipe, win32file, pywintypes
+import win32file
 import time
 import threading
 
@@ -17,7 +17,7 @@ class ThreadDeviceDriverWrapper:
         # constructor
         self.listening_pipe = ""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(5) # sets timeout of 5 seconds
+        self.socket.settimeout(5)  # sets timeout of 5 seconds
         self.id = uuid.uuid1()
         self.socket_connected = False
         print("Initialized pt 0.1")
@@ -102,7 +102,6 @@ class ThreadDeviceDriverWrapper:
             payload = self.__receive_endpoint_request()
         except CouldNotConnectException:
             raise BadFileException
-        print("SUCCESS returned on set calibration with file")
 
     # is_glove_connected() returns True if glove is connected to the driver, False otherwise.
     # Raises CouldNotConnectException on socket failure.
@@ -161,7 +160,7 @@ class ThreadDeviceDriverWrapper:
                 except ValueError:
                     print("Not a valid gesture code")
 
-    # TODO: see todos below
+    # TODO: this is a feature for development only
     def start_gesture_recording(self):
         self.__build_and_send_endpoint_request(DriverRequestCode.START_RECORDING.value, "")
         try:
@@ -171,7 +170,7 @@ class ThreadDeviceDriverWrapper:
         print("SUCCESS STARTING")
         return True
 
-    # TODO: see todos below
+    # TODO: same as above
     def end_gesture_recording(self, file_path):
         self.__build_and_send_endpoint_request(DriverRequestCode.END_RECORDING.value, file_path)
         try:
@@ -304,8 +303,8 @@ class DriverRequestCode(IntEnum):
     USE_SAVED_CALIBRATION_DATA_REQUEST = 6
     ASK_IF_CALIBRATED_REQUEST = 7
     IS_GLOVE_CONNECTED_REQUEST = 8
-    START_RECORDING = 9 #TODO: this is a temporary endpoint for recording gestures for the purpose of gesture recognition
-    END_RECORDING = 11 #TODO: ^
+    START_RECORDING = 9  # TODO: this is a temporary endpoint for recording gestures for the purpose of gesture recognition
+    END_RECORDING = 11  # TODO: ^
 
 
 class ConnectCode(Enum):
